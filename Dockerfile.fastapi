@@ -1,0 +1,15 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+RUN pip install --upgrade pip
+
+COPY requirements.txt /app
+
+RUN pip install --default-timeout=100 --no-cache-dir -r requirements.txt
+
+COPY api.py /app
+
+EXPOSE 8000
+
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]

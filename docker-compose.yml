@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  mlflow:
+    image: python:3.9-slim
+    container_name: mlflow
+    # We assume you have a shell script or direct command to run MLflow server
+    command: >
+      sh -c "
+      pip install mlflow==2.3.2 boto3 && 
+      mlflow server 
+          --backend-store-uri /mlflow/mlruns 
+          --default-artifact-root /mlflow/mlartifacts 
+          --host 0.0.0.0 
+          --port 5000
+      "
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+      - ./mlartifacts:/mlflow/mlartifacts
+    ports:
+      - "5000:5000"
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    networks:
+      - mlops_net
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      # Let the FastAPI container know where the MLflow Tracking Server is:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      # If your model is in a specific stage in the Model Registry, you can specify that logic in your code
+    depends_on:
+      - mlflow
+    networks:
+      - mlops_net
+
+networks:
+  mlops_net:
+    driver: bridge
