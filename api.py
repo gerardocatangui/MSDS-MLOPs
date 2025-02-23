@@ -3,9 +3,8 @@ import mlflow
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-# We will load the model by name and stage (or version)
 MODEL_NAME = "my_sklearn_model"
-MODEL_STAGE = "Production"  # or "Staging"
+MODEL_STAGE = "Production" 
 
 app = FastAPI()
 
