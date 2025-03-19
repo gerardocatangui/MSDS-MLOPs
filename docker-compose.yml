@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  mlflow:
+    image: python:3.9-slim
+    container_name: mlflow
+    
+    command: >
+      sh -c "
+      pip install mlflow==2.3.2 boto3 && 
+      mlflow server 
+          --backend-store-uri /mlflow/mlruns 
+          --default-artifact-root /mlflow/mlartifacts 
+          --host 0.0.0.0 
+          --port 5000
+      "
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+      - ./mlartifacts:/mlflow/mlartifacts
+    ports:
+      - "5000:5000"
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    networks:
+      - mlops_net
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      
+    depends_on:
+      - mlflow
+    networks:
+      - mlops_net
+
+networks:
+  mlops_net:
+    driver: bridge
